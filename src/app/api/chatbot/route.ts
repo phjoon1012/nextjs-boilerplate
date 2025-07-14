@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     const data = await openaiRes.json();
     const reply = data.choices?.[0]?.message?.content || "No response from OpenAI.";
     return NextResponse.json({ reply });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ reply: "Error contacting OpenAI API." }, { status: 500 });
   }
 } 

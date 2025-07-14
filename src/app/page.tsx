@@ -1,10 +1,6 @@
-import Image from "next/image";
-import { ExternalLink } from "lucide-react";
+import { Hero12 } from "@/components/hero12";
 import Link from "next/link";
 
-import { cn } from "@/lib/utils";
-import { Hero12 } from "@/components/hero12";
-import { Button, buttonVariants } from "@/components/ui/button";
 export default function Home() {
   return (
     <>
