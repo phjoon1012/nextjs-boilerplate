@@ -25,10 +25,10 @@ const NAV_LOGO = {
 };
 const NAV_ITEMS = [
   { name: "Home", link: "/" },
-  { name: "About", link: "/about" },
-  { name: "Work", link: "/work" },
-  { name: "Hobbies", link: "/hobbies" },
-  { name: "Contact", link: "/contact" },
+  { name: "About Me", link: "/about" },
+  { name: "My Work", link: "/work" },
+  { name: "My Hobbies", link: "/hobbies" },
+  { name: "Contact Me", link: "/contact" },
 ];
 
 const Navbar = () => {
@@ -59,14 +59,14 @@ const Navbar = () => {
 
   return (
     <section className="py-4 max-w-5xl mx-auto">
-      <nav className="container flex items-center justify-between">
+      <nav className="container flex items-center justify-center">
         {/* Left WordMark */}
-        <a href={NAV_LOGO.url} className="flex items-center gap-2">
+        {/* <a href={NAV_LOGO.url} className="flex items-center gap-2">
           <img src={NAV_LOGO.src} className="max-h-8 w-8" alt={NAV_LOGO.alt} />
           <span className="text-lg font-semibold tracking-tighter">
             {NAV_LOGO.title}
           </span>
-        </a>
+        </a> */}
 
         <NavigationMenu className="hidden lg:block">
           <NavigationMenuList

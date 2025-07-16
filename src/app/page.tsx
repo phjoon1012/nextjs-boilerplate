@@ -1,16 +1,14 @@
-import { About4 } from "@/components/about4";
+import { About8 } from "@/components/about8";
 import { Hero12 } from "@/components/hero12";
 import { Hero219 } from "@/components/hero219";
 import { Hero223 } from "@/components/hero223";
-import { Navbar } from "@/components/navbar";
 import Link from "next/link";
 
 export default function Home() {
   return (
     <>
-      <Navbar />
       <Hero223 />
-      <About4 />
+      <About8 />
       <Hero12 />
       <Hero219 />
       <div className="mt-8 flex justify-center">
