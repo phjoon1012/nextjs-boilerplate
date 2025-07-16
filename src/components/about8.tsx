@@ -195,8 +195,6 @@ interface PlusSignsProps extends SVGProps<SVGSVGElement> {
 
 const PlusSigns = ({ className, ...props }: PlusSignsProps) => {
   const GAP = 16;
-  const STROKE_WIDTH = 1;
-  const PLUS_SIZE = 6;
   const id = useId();
   const patternId = `plus-pattern-${id}`;
 
