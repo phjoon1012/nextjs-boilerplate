@@ -80,7 +80,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
             </Button>
           </Link>
           {showEdit && (
-            <Link href={`/projects/${params.slug}/edit`}>
+            <Link href={`/projects/${slug}/edit`}>
               <Button variant="outline" className="flex items-center gap-2">
                 <Edit className="h-4 w-4" />
                 Edit Project
