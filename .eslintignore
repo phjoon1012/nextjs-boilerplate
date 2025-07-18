@@ -1,0 +1,3 @@
+# Ignore specific files or directories
+src/app/projects/[slug]/edit/page.tsx
+src/app/about/page.tsx 

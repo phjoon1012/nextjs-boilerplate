@@ -1,7 +1,9 @@
+import Blog17 from "@/components/blog17";
+
 export default function Work() {
   return (
-    <div>
-      <h1>Work</h1>
+    <div className="max-w-5xl mx-auto">
+      <Blog17 />
     </div>
   );
 }
