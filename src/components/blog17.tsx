@@ -4,7 +4,7 @@ import React, { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
 
 import { cn } from "@/lib/utils";
-import { Project, getAllProjects, searchProjects, getCategories, getTechnologies, parseProjectDescription } from "@/lib/projects";
+import { Project, getAllProjects, searchProjects, getCategories, getTechnologies, parseProjectDescription, formatProjectDate } from "@/lib/projects";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -294,17 +294,22 @@ const Blog17 = () => {
                           </span>
                         ))}
                       </div>
-                      <span className="text-sm font-medium text-primary">
-                        {item.duration}
-                      </span>
+                      <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                        {item.project_date && (
+                          <span>{formatProjectDate(item.project_date, item.project_location)}</span>
+                        )}
+                        <span className="text-primary font-medium">
+                          {item.duration}
+                        </span>
+                      </div>
                     </div>
                     <h3 className="text-2xl font-semibold text-balance lg:text-3xl">
                       {item.title}
                     </h3>
                     <p className="text-muted-foreground">
                       {(() => {
-                        const sections = parseProjectDescription(item.description);
-                        return sections.overview || item.description;
+                        const sections = parseProjectDescription(item.description || '');
+                        return sections.overview || item.description || '';
                       })()}
                     </p>
                     

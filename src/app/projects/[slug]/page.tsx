@@ -1,20 +1,22 @@
-"use client";
-
-import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ExternalLink, Github, Calendar, Users, Zap, Brain, Star, BookOpen, TrendingUp, AlertTriangle, Edit } from "lucide-react";
-import { getProjectBySlug, parseProjectDescription, Project } from "@/lib/projects";
+import { ArrowLeft, ExternalLink, Github, Calendar, Users, Zap, Brain, Star, BookOpen, TrendingUp, AlertTriangle, Edit, MapPin, FileCode } from "lucide-react";
+import { getProjectBySlug, parseProjectDescription, Project, formatProjectDate } from "@/lib/projects";
+import TSPVisualizer from "@/components/tsp-visualizer";
+import MarkdownRenderer from "@/components/markdown-renderer";
 import { notFound } from "next/navigation";
-
-// Simple admin check - you can modify this to your preference
-const isAdmin = () => {
-  if (typeof window !== 'undefined') {
-    return localStorage.getItem('isAdmin') === 'true' || 
-           window.location.search.includes('admin=true');
-  }
-  return false;
-};
+import { Metadata } from "next";
+import ProjectEditButton from "@/components/project-edit-button";
+import TableOfContents from "@/components/table-of-contents";
+import ProjectSection from "@/components/project-section";
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { 
+  SECTION_CONFIGS, 
+  DEFAULT_SECTIONS_ORDER, 
+  DEFAULT_SECTIONS_VISIBILITY,
+  DEFAULT_CONTENT_TYPE 
+} from "@/lib/section-config";
 
 interface ProjectPageProps {
   params: Promise<{
@@ -22,51 +24,58 @@ interface ProjectPageProps {
   }>;
 }
 
-export default function ProjectPage({ params }: ProjectPageProps) {
-  const [project, setProject] = useState<Project | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [showEdit, setShowEdit] = useState(false);
+// Generate metadata for SEO
+export async function generateMetadata({ params }: ProjectPageProps): Promise<Metadata> {
+  const resolvedParams = await params;
+  const project = await getProjectBySlug(resolvedParams.slug);
   
-  // Unwrap params using React.use()
-  const resolvedParams = use(params) as { slug: string };
-  const slug = resolvedParams.slug;
-
-  useEffect(() => {
-    const loadProject = async () => {
-      try {
-        const projectData = await getProjectBySlug(slug);
-        if (projectData) {
-          setProject(projectData);
-        } else {
-          notFound();
-        }
-        setLoading(false);
-      } catch (error) {
-        console.error("Error loading project:", error);
-        setLoading(false);
-      }
+  if (!project) {
+    return {
+      title: 'Project Not Found',
+      description: 'The requested project could not be found.'
     };
-
-    loadProject();
-    setShowEdit(isAdmin());
-  }, [slug]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen py-20">
-        <div className="container max-w-4xl mx-auto px-4">
-          <p className="text-center text-muted-foreground">Loading project...</p>
-        </div>
-      </div>
-    );
   }
 
+  const description = project.description || project.overview || 'Project details';
+  
+  return {
+    title: `${project.title} - Portfolio Project`,
+    description: description.substring(0, 160),
+    keywords: [...project.technologies, ...project.categories].join(', '),
+    openGraph: {
+      title: project.title,
+      description: description.substring(0, 160),
+      type: 'article',
+      publishedTime: project.created_at,
+      modifiedTime: project.updated_at,
+    },
+  };
+}
+
+// Generate static params for better performance
+export async function generateStaticParams() {
+  // This will pre-generate pages for known projects
+  // You can expand this to fetch all project slugs
+  return [
+    { slug: 'traveling-salesman-problem-solver' },
+    { slug: 'euchre-card-game' },
+    // Add more known slugs here
+  ];
+}
+
+export default async function ProjectPage({ params }: ProjectPageProps) {
+  const resolvedParams = await params;
+  const slug = resolvedParams.slug;
+
+  // Server-side data fetching
+  const project = await getProjectBySlug(slug);
+  
   if (!project) {
     notFound();
   }
 
-  // Parse the enhanced description into sections
-  const descriptionSections = parseProjectDescription(project.description);
+  // Parse the enhanced description into sections (for backward compatibility)
+  const descriptionSections = parseProjectDescription(project.description || '');
 
   return (
     <div className="min-h-screen py-20">
@@ -79,14 +88,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
               Back to Work
             </Button>
           </Link>
-          {showEdit && (
-            <Link href={`/projects/${slug}/edit`}>
-              <Button variant="outline" className="flex items-center gap-2">
-                <Edit className="h-4 w-4" />
-                Edit Project
-              </Button>
-            </Link>
-          )}
+          <ProjectEditButton slug={slug} />
         </div>
 
         {/* Project Header */}
@@ -107,14 +109,16 @@ export default function ProjectPage({ params }: ProjectPageProps) {
           </h1>
           
           <p className="text-xl text-muted-foreground mb-8">
-            {descriptionSections.overview || project.description}
+            {project.overview || descriptionSections.overview || project.description}
           </p>
 
           {/* Project Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">{project.duration}</span>
+              <span className="text-sm text-muted-foreground">
+                {project.project_date ? formatProjectDate(project.project_date, project.project_location) : project.duration}
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-muted-foreground" />
@@ -131,132 +135,492 @@ export default function ProjectPage({ params }: ProjectPageProps) {
           </div>
         </div>
 
+        {/* Main Content */}
         <div className="space-y-12">
-          {/* Key Achievements */}
-          <section>
-            <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-              <Star className="h-6 w-6 text-primary" />
-              Key Achievements
-            </h2>
-            <ul className="space-y-3">
-              {project.achievements.map((achievement: string, index: number) => (
-                <li key={index} className="flex items-start gap-3">
-                  <span className="text-primary mt-1">•</span>
-                  <span className="text-muted-foreground">{achievement}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
+          {renderAllContentInOrder(project)}
 
-
-
-          {/* Theory & Approach */}
-          <section>
-            <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-              <Brain className="h-6 w-6 text-primary" />
-              Theory & Approach
-            </h2>
-            <div className="bg-secondary/30 rounded-lg p-6">
-              <p className="text-muted-foreground leading-relaxed">
-                {descriptionSections.theory_and_approach || "Content coming soon..."}
-              </p>
-            </div>
-          </section>
-
-          {/* Technologies */}
-          <section>
-            <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-              <Zap className="h-6 w-6 text-primary" />
-              Technologies Used
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {project.technologies.map((tech: string) => (
-                <span key={tech} className="px-3 py-2 bg-secondary text-secondary-foreground rounded-md text-sm font-medium">
-                  {tech}
-                </span>
-              ))}
-            </div>
-          </section>
-
-          {/* Technical Deep Dive */}
-          <section>
-            <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-              <BookOpen className="h-6 w-6 text-primary" />
-              Technical Deep Dive
-            </h2>
-            <div className="space-y-6">
-              <div className="bg-secondary/30 rounded-lg p-6">
-                <p className="text-muted-foreground leading-relaxed">
-                  {descriptionSections.technical_deep_dive || "Content coming soon..."}
-                </p>
+          {/* Code Snippets */}
+          {project.code_snippets && project.code_snippets.length > 0 && (
+            <ProjectSection
+              id="code-snippets"
+              title="Code Snippets"
+              icon={<FileCode className="h-6 w-6" />}
+            >
+              <div className="space-y-6">
+                {project.code_snippets.map((snippet) => (
+                  <div key={snippet.id} className="space-y-2">
+                    {snippet.title && (
+                      <h4 className="text-lg font-semibold">{snippet.title}</h4>
+                    )}
+                    {snippet.description && (
+                      <p className="text-muted-foreground">{snippet.description}</p>
+                    )}
+                    <div className="relative">
+                      <SyntaxHighlighter
+                        language={snippet.language}
+                        style={oneLight}
+                        customStyle={{
+                          margin: 0,
+                          borderRadius: '0.5rem',
+                          fontSize: '0.875rem',
+                        }}
+                      >
+                        {snippet.code}
+                      </SyntaxHighlighter>
+                    </div>
+                  </div>
+                ))}
               </div>
-            </div>
-          </section>
+            </ProjectSection>
+          )}
 
-          {/* Challenges & Solutions */}
-          <section>
-            <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-              <AlertTriangle className="h-6 w-6 text-primary" />
-              Challenges & Solutions
-            </h2>
-            <div className="space-y-4">
-              {descriptionSections.challenges_and_solutions ? (
-                descriptionSections.challenges_and_solutions.split('\n').map((line, index) => {
-                  if (line.trim().match(/^\d+\./)) {
-                    const parts = line.split(':')
-                    if (parts.length >= 2) {
-                      const challenge = parts[0].replace(/^\d+\.\s*/, '').trim()
-                      const solution = parts.slice(1).join(':').trim()
-                      return (
-                        <div key={index} className="border-l-4 border-primary/20 pl-4">
-                          <h3 className="font-medium mb-2">Challenge {index + 1}: {challenge}</h3>
-                          <p className="text-muted-foreground leading-relaxed">
-                            <strong>Solution:</strong> {solution}
-                          </p>
-                        </div>
-                      )
-                    }
-                  }
-                  return null
-                })
-              ) : (
-                <p className="text-muted-foreground">Content coming soon...</p>
-              )}
-            </div>
-          </section>
-
-          {/* Lessons Learned */}
-          <section>
-            <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-              <TrendingUp className="h-6 w-6 text-primary" />
-              Lessons Learned
-            </h2>
-            <div className="bg-secondary/30 rounded-lg p-6">
-              <p className="text-muted-foreground leading-relaxed">
-                {descriptionSections.lessons_learned || "Content coming soon..."}
-              </p>
-            </div>
-          </section>
+          {/* TSP Visualizer - Keep as client component */}
+          {project.slug === 'traveling-salesman-problem-solver' && (
+            <ProjectSection
+              id="tsp-visualizer"
+              title="TSP Algorithm Visualizer"
+              icon={<MapPin className="h-6 w-6" />}
+            >
+              <TSPVisualizer />
+            </ProjectSection>
+          )}
 
           {/* Project Links */}
-          <section>
-            <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-              <ExternalLink className="h-6 w-6 text-primary" />
-              Project Links
-            </h2>
+          <ProjectSection
+            id="project-links"
+            title="Project Links"
+            icon={<ExternalLink className="h-6 w-6" />}
+          >
             <div className="flex flex-wrap gap-4">
               <Button variant="outline" className="flex items-center gap-2">
-                <ExternalLink className="h-4 w-4" />
-                Live Demo
-              </Button>
-              <Button variant="outline" className="flex items-center gap-2">
                 <Github className="h-4 w-4" />
-                Source Code
+                View on GitHub
               </Button>
+              {/* Add more project links as needed */}
             </div>
-          </section>
+          </ProjectSection>
         </div>
       </div>
     </div>
   );
+}
+
+// Helper function to get sections for table of contents
+function getSectionsForTOC(project: Project) {
+  const sections: Array<{ id: string; title: string; visible: boolean }> = [];
+  
+  // 1. Objective
+  const objectiveContent = project.objective as string;
+  if (objectiveContent?.trim()) {
+    sections.push({
+      id: 'objective',
+      title: 'Objective',
+      visible: true
+    });
+  }
+  
+  // 2. Achievements (database field)
+  if (project.achievements && project.achievements.length > 0) {
+    sections.push({
+      id: 'achievements',
+      title: 'Key Achievements',
+      visible: true
+    });
+  }
+  
+  // 3. Technologies (database field)
+  if (project.technologies && project.technologies.length > 0) {
+    sections.push({
+      id: 'technologies',
+      title: 'Technologies Used',
+      visible: true
+    });
+  }
+  
+  // 4. Theory & Approach
+  const theoryContent = project.theory_approach as string;
+  if (theoryContent?.trim()) {
+    sections.push({
+      id: 'theory_approach',
+      title: 'Theory & Approach',
+      visible: true
+    });
+  }
+  
+  // 5. Technical Deep Dive
+  const technicalContent = project.technical_deep_dive as string;
+  if (technicalContent?.trim()) {
+    sections.push({
+      id: 'technical_deep_dive',
+      title: 'Technical Deep Dive',
+      visible: true
+    });
+  }
+  
+  // 6. Challenges & Solutions
+  const challengesContent = project.challenges_solutions as string;
+  if (challengesContent?.trim()) {
+    sections.push({
+      id: 'challenges_solutions',
+      title: 'Challenges & Solutions',
+      visible: true
+    });
+  }
+  
+  // 7. Review
+  const reviewContent = project.review as string;
+  if (reviewContent?.trim()) {
+    sections.push({
+      id: 'review',
+      title: 'Review',
+      visible: true
+    });
+  }
+  
+  // 8. Future Improvements
+  const futureContent = project.future_improvements as string;
+  if (futureContent?.trim()) {
+    sections.push({
+      id: 'future_improvements',
+      title: 'Future Improvements',
+      visible: true
+    });
+  }
+  
+  return sections;
+}
+
+// Helper function to render all content in the correct order
+function renderAllContentInOrder(project: Project) {
+  const sections: React.ReactElement[] = [];
+  const contentType = project.content_type || DEFAULT_CONTENT_TYPE;
+  
+  // 1. Objective
+  const objectiveContent = project.objective as string;
+  if (objectiveContent?.trim()) {
+    const config = SECTION_CONFIGS['objective'];
+    if (config) {
+      const IconComponent = config.icon;
+      sections.push(
+        <ProjectSection
+          key="objective"
+          id="objective"
+          title={config.title}
+          content={objectiveContent}
+          contentType={(contentType as Record<string, 'markdown' | 'text'>)['objective'] || config.defaultContentType}
+          icon={<IconComponent className="h-6 w-6" />}
+        />
+      );
+    }
+  }
+  
+  // 2. Achievements (database field)
+  if (project.achievements && project.achievements.length > 0) {
+    sections.push(
+      <ProjectSection
+        key="achievements"
+        id="achievements"
+        title="Key Achievements"
+        icon={<Star className="h-6 w-6" />}
+      >
+        <ul className="space-y-2">
+          {project.achievements.map((achievement, index) => (
+            <li key={index} className="flex items-start gap-2">
+              <span className="text-primary mt-1">•</span>
+              <span className="text-muted-foreground">{achievement}</span>
+            </li>
+          ))}
+        </ul>
+      </ProjectSection>
+    );
+  }
+  
+  // 3. Technologies (database field)
+  if (project.technologies && project.technologies.length > 0) {
+    sections.push(
+      <ProjectSection
+        key="technologies"
+        id="technologies"
+        title="Technologies Used"
+        icon={<Zap className="h-6 w-6" />}
+      >
+        <div className="flex flex-wrap gap-2">
+          {project.technologies.map((tech, index) => (
+            <span key={index} className="text-sm font-medium text-primary bg-primary/10 px-3 py-1 rounded-full">
+              {tech}
+            </span>
+          ))}
+        </div>
+      </ProjectSection>
+    );
+  }
+  
+  // 4. Theory & Approach
+  const theoryContent = project.theory_approach as string;
+  if (theoryContent?.trim()) {
+    const config = SECTION_CONFIGS['theory_approach'];
+    if (config) {
+      const IconComponent = config.icon;
+      sections.push(
+        <ProjectSection
+          key="theory_approach"
+          id="theory_approach"
+          title={config.title}
+          content={theoryContent}
+          contentType={(contentType as Record<string, 'markdown' | 'text'>)['theory_approach'] || config.defaultContentType}
+          icon={<IconComponent className="h-6 w-6" />}
+        />
+      );
+    }
+  }
+  
+  // 5. Technical Deep Dive
+  const technicalContent = project.technical_deep_dive as string;
+  if (technicalContent?.trim()) {
+    const config = SECTION_CONFIGS['technical_deep_dive'];
+    if (config) {
+      const IconComponent = config.icon;
+      sections.push(
+        <ProjectSection
+          key="technical_deep_dive"
+          id="technical_deep_dive"
+          title={config.title}
+          content={technicalContent}
+          contentType={(contentType as Record<string, 'markdown' | 'text'>)['technical_deep_dive'] || config.defaultContentType}
+          icon={<IconComponent className="h-6 w-6" />}
+        />
+      );
+    }
+  }
+  
+  // 6. Challenges & Solutions
+  const challengesContent = project.challenges_solutions as string;
+  if (challengesContent?.trim()) {
+    const config = SECTION_CONFIGS['challenges_solutions'];
+    if (config) {
+      const IconComponent = config.icon;
+      sections.push(
+        <ProjectSection
+          key="challenges_solutions"
+          id="challenges_solutions"
+          title={config.title}
+          content={challengesContent}
+          contentType={(contentType as Record<string, 'markdown' | 'text'>)['challenges_solutions'] || config.defaultContentType}
+          icon={<IconComponent className="h-6 w-6" />}
+        />
+      );
+    }
+  }
+  
+  // 7. Review
+  const reviewContent = project.review as string;
+  if (reviewContent?.trim()) {
+    const config = SECTION_CONFIGS['review'];
+    if (config) {
+      const IconComponent = config.icon;
+      sections.push(
+        <ProjectSection
+          key="review"
+          id="review"
+          title={config.title}
+          content={reviewContent}
+          contentType={(contentType as Record<string, 'markdown' | 'text'>)['review'] || config.defaultContentType}
+          icon={<IconComponent className="h-6 w-6" />}
+        />
+      );
+    }
+  }
+  
+  // 8. Future Improvements
+  const futureContent = project.future_improvements as string;
+  if (futureContent?.trim()) {
+    const config = SECTION_CONFIGS['future_improvements'];
+    if (config) {
+      const IconComponent = config.icon;
+      sections.push(
+        <ProjectSection
+          key="future_improvements"
+          id="future_improvements"
+          title={config.title}
+          content={futureContent}
+          contentType={(contentType as Record<string, 'markdown' | 'text'>)['future_improvements'] || config.defaultContentType}
+          icon={<IconComponent className="h-6 w-6" />}
+        />
+      );
+    }
+  }
+  
+  return sections;
+}
+
+// Helper function to render modular sections
+function renderModularSections(project: Project) {
+  const sectionsOrder = project.sections_order || DEFAULT_SECTIONS_ORDER;
+  const sectionsVisibility = project.sections_visibility || DEFAULT_SECTIONS_VISIBILITY;
+  const contentType = project.content_type || DEFAULT_CONTENT_TYPE;
+  
+  // If no modular content exists, fall back to the old description format
+  const hasModularContent = sectionsOrder.some(sectionId => {
+    const content = project[sectionId as keyof Project] as string;
+    return content?.trim();
+  });
+  
+  if (!hasModularContent && project.description) {
+    // Fall back to old description format
+    const descriptionSections = parseProjectDescription(project.description);
+    
+    return Object.entries(descriptionSections).map(([sectionKey, content]) => {
+      if (!content?.trim()) return null;
+      
+      // Map old section keys to new ones
+      const sectionMapping: Record<string, string> = {
+        'overview': 'overview',
+        'theory_and_approach': 'theory_approach',
+        'technical_deep_dive': 'technical_deep_dive',
+        'challenges_and_solutions': 'challenges_solutions',
+        'lessons_learned': 'review'
+      };
+      
+      const newSectionId = sectionMapping[sectionKey];
+      if (!newSectionId) return null;
+      
+      const config = SECTION_CONFIGS[newSectionId];
+      if (!config) return null;
+      
+      const IconComponent = config.icon;
+      
+      return (
+        <ProjectSection
+          key={newSectionId}
+          id={newSectionId}
+          title={config.title}
+          content={content}
+          contentType="markdown"
+          icon={<IconComponent className="h-6 w-6" />}
+        />
+      );
+    }).filter(Boolean);
+  }
+  
+  // Use modular content with custom order
+  const sections: React.ReactElement[] = [];
+  
+  // 1. Objective
+  const objectiveContent = project.objective as string;
+  if (objectiveContent?.trim()) {
+    const config = SECTION_CONFIGS['objective'];
+    if (config) {
+      const IconComponent = config.icon;
+      sections.push(
+        <ProjectSection
+          key="objective"
+          id="objective"
+          title={config.title}
+          content={objectiveContent}
+          contentType={(contentType as Record<string, 'markdown' | 'text'>)['objective'] || config.defaultContentType}
+          icon={<IconComponent className="h-6 w-6" />}
+        />
+      );
+    }
+  }
+  
+  // 2. Achievements (database field) - will be rendered separately after modular sections
+  // 3. Technologies (database field) - will be rendered separately after modular sections
+  
+  // 4. Theory & Approach
+  const theoryContent = project.theory_approach as string;
+  if (theoryContent?.trim()) {
+    const config = SECTION_CONFIGS['theory_approach'];
+    if (config) {
+      const IconComponent = config.icon;
+      sections.push(
+        <ProjectSection
+          key="theory_approach"
+          id="theory_approach"
+          title={config.title}
+          content={theoryContent}
+          contentType={(contentType as Record<string, 'markdown' | 'text'>)['theory_approach'] || config.defaultContentType}
+          icon={<IconComponent className="h-6 w-6" />}
+        />
+      );
+    }
+  }
+  
+  // 5. Technical Deep Dive
+  const technicalContent = project.technical_deep_dive as string;
+  if (technicalContent?.trim()) {
+    const config = SECTION_CONFIGS['technical_deep_dive'];
+    if (config) {
+      const IconComponent = config.icon;
+      sections.push(
+        <ProjectSection
+          key="technical_deep_dive"
+          id="technical_deep_dive"
+          title={config.title}
+          content={technicalContent}
+          contentType={(contentType as Record<string, 'markdown' | 'text'>)['technical_deep_dive'] || config.defaultContentType}
+          icon={<IconComponent className="h-6 w-6" />}
+        />
+      );
+    }
+  }
+  
+  // 6. Challenges & Solutions
+  const challengesContent = project.challenges_solutions as string;
+  if (challengesContent?.trim()) {
+    const config = SECTION_CONFIGS['challenges_solutions'];
+    if (config) {
+      const IconComponent = config.icon;
+      sections.push(
+        <ProjectSection
+          key="challenges_solutions"
+          id="challenges_solutions"
+          title={config.title}
+          content={challengesContent}
+          contentType={(contentType as Record<string, 'markdown' | 'text'>)['challenges_solutions'] || config.defaultContentType}
+          icon={<IconComponent className="h-6 w-6" />}
+        />
+      );
+    }
+  }
+  
+  // 7. Review
+  const reviewContent = project.review as string;
+  if (reviewContent?.trim()) {
+    const config = SECTION_CONFIGS['review'];
+    if (config) {
+      const IconComponent = config.icon;
+      sections.push(
+        <ProjectSection
+          key="review"
+          id="review"
+          title={config.title}
+          content={reviewContent}
+          contentType={(contentType as Record<string, 'markdown' | 'text'>)['review'] || config.defaultContentType}
+          icon={<IconComponent className="h-6 w-6" />}
+        />
+      );
+    }
+  }
+  
+  // 8. Future Improvements
+  const futureContent = project.future_improvements as string;
+  if (futureContent?.trim()) {
+    const config = SECTION_CONFIGS['future_improvements'];
+    if (config) {
+      const IconComponent = config.icon;
+      sections.push(
+        <ProjectSection
+          key="future_improvements"
+          id="future_improvements"
+          title={config.title}
+          content={futureContent}
+          contentType={(contentType as Record<string, 'markdown' | 'text'>)['future_improvements'] || config.defaultContentType}
+          icon={<IconComponent className="h-6 w-6" />}
+        />
+      );
+    }
+  }
+  
+  return sections;
 } 

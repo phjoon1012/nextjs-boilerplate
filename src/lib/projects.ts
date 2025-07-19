@@ -3,29 +3,66 @@ import { supabase } from './supabase'
 export interface Project {
   id: number
   title: string
-  description: string
+  description?: string // Keep for backward compatibility
   technologies: string[]
   duration: string
   achievements: string[]
   categories: string[]
   slug: string
+  project_date?: string
+  project_location?: string
   created_at?: string
   updated_at?: string
-  theory_approach?: {
+  
+  // Modular content sections
+  overview?: string
+  objective?: string
+  key_achievements?: string
+  theory_approach?: string
+  tech_used?: string
+  technical_deep_dive?: string
+  challenges_solutions?: string
+  review?: string
+  future_improvements?: string
+  
+  // Section management
+  sections_order?: string[]
+  sections_visibility?: Record<string, boolean>
+  content_type?: Record<string, 'markdown' | 'text'>
+  
+  // Table of contents
+  show_toc?: boolean
+  toc_position?: 'left' | 'right'
+  
+  // Content metadata
+  last_edited?: string
+  content_version?: number
+  
+  // Code snippets
+  code_snippets?: Array<{
+    id: string
+    language: string
+    code: string
+    title?: string
+    description?: string
+  }>
+  
+  // Legacy fields (for backward compatibility)
+  theory_approach_legacy?: {
     problem_analysis: string
     design_philosophy: string
     algorithmic_thinking: string
   }
-  technical_deep_dive?: {
+  technical_deep_dive_legacy?: {
     architecture_overview: string
     key_implementation_details: string[]
   }
-  challenges_solutions?: Array<{
+  challenges_solutions_legacy?: Array<{
     challenge: string
     description: string
     solution: string
   }>
-  lessons_learned?: {
+  lessons_learned_legacy?: {
     technical_insights: string
     development_process: string
     future_improvements: string
@@ -84,6 +121,56 @@ export function parseProjectDescription(description: string) {
   }
   
   return sections
+}
+
+// Helper function to format project dates
+export function formatProjectDate(dateString?: string, location?: string): string {
+  if (!dateString) return ''
+  
+  try {
+    // Check if it's a date range (contains "-")
+    if (dateString.includes('-')) {
+      const [startDate, endDate] = dateString.split('-').map(d => d.trim())
+      
+      const start = new Date(startDate)
+      const end = new Date(endDate)
+      
+      const startFormatted = start.toLocaleDateString('en-US', {
+        month: 'short',
+        year: 'numeric'
+      })
+      
+      const endFormatted = end.toLocaleDateString('en-US', {
+        month: 'short',
+        year: 'numeric'
+      })
+      
+      const dateRange = `${startFormatted} - ${endFormatted}`
+      
+      // Add location if provided
+      if (location) {
+        return `${dateRange}, ${location}`
+      }
+      
+      return dateRange
+    } else {
+      // Single date
+      const date = new Date(dateString)
+      const formattedDate = date.toLocaleDateString('en-US', {
+        month: 'short',
+        year: 'numeric'
+      })
+      
+      // Add location if provided
+      if (location) {
+        return `${formattedDate}, ${location}`
+      }
+      
+      return formattedDate
+    }
+  } catch (error) {
+    return dateString
+  }
 }
 
 export async function getAllProjects(): Promise<Project[]> {
