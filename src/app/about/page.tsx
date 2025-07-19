@@ -103,7 +103,7 @@ export default function About() {
       </section>
 
       {/* Original Feature102 Component */}
-      <Feature102 />
+      {/* <Feature102 /> */}
     </div>
   );
 } 

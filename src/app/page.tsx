@@ -9,7 +9,7 @@ export default function Home() {
   return (
     <>
       <Hero223 />
-      <About8 />
+      {/* <About8 />
       <Hero12 />
       <Hero219 />
       <div className="mt-8 flex justify-center">
@@ -26,7 +26,7 @@ export default function Home() {
             className="max-w-full h-auto border rounded my-2" 
           />
         </div>
-      </div>
+      </div> */}
     </>
   );
 }
