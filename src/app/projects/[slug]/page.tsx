@@ -2,13 +2,13 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ExternalLink, Github, Calendar, Users, Zap, Brain, Star, BookOpen, TrendingUp, AlertTriangle, Edit, MapPin, FileCode } from "lucide-react";
 import { getProjectBySlug, parseProjectDescription, Project, formatProjectDate } from "@/lib/projects";
-import TSPVisualizer from "@/components/tsp-visualizer";
-import MarkdownRenderer from "@/components/markdown-renderer";
+import TSPVisualizer from "@/components/work/TSPVisualizer";
+import MarkdownRenderer from "@/components/work/MarkdownRenderer";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
-import ProjectEditButton from "@/components/project-edit-button";
-import TableOfContents from "@/components/table-of-contents";
-import ProjectSection from "@/components/project-section";
+import ProjectEditButton from "@/components/work/ProjectEditButton";
+import TableOfContents from "@/components/work/TableOfContents";
+import ProjectSection from "@/components/work/ProjectSection";
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { 
@@ -91,46 +91,46 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           <ProjectEditButton slug={slug} />
         </div>
 
-        {/* Project Header */}
-        <div className="mb-12">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex flex-wrap gap-2">
+        {/* Project Header - Resume Style */}
+        <div className="mb-8">
+          {/* Title and Category Row */}
+          <div className="flex items-center justify-between mb-3">
+            <h1 className="text-3xl font-bold text-foreground">
+              {project.title}
+            </h1>
+            <div className="flex items-center gap-2">
               {project.categories.map((category: string, index: number) => (
-                <span key={index} className="text-sm font-medium text-primary bg-primary/10 px-3 py-1 rounded-full">
+                <span key={index} className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-md">
                   {category}
                 </span>
               ))}
             </div>
-            <span className="text-sm text-muted-foreground">{project.duration}</span>
           </div>
           
-          <h1 className="text-4xl font-bold lg:text-5xl mb-6">
-            {project.title}
-          </h1>
-          
-          <p className="text-xl text-muted-foreground mb-8">
+          {/* Project Overview */}
+          <p className="text-lg text-muted-foreground mb-4 leading-relaxed">
             {project.overview || descriptionSections.overview || project.description}
           </p>
 
-          {/* Project Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {/* Compact Project Stats */}
+          <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground border-t border-border pt-4">
             <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">
+              <Calendar className="h-4 w-4" />
+              <span>
                 {project.project_date ? formatProjectDate(project.project_date, project.project_location) : project.duration}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Team Project</span>
+              <Users className="h-4 w-4" />
+              <span>Team Project</span>
             </div>
             <div className="flex items-center gap-2">
-              <Zap className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Production Ready</span>
+              <Zap className="h-4 w-4" />
+              <span>Production Ready</span>
             </div>
             <div className="flex items-center gap-2">
-              <Star className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Featured</span>
+              <Star className="h-4 w-4" />
+              <span>Featured</span>
             </div>
           </div>
         </div>

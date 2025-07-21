@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useContext } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -11,8 +11,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Save, Plus, X, BookOpen, Brain, AlertTriangle, TrendingUp, User, Calendar, MapPin, Zap, Star, FileCode } from "lucide-react";
 import { getProjectBySlug, Project } from "@/lib/projects";
-import SimpleMarkdownEditor from "@/components/simple-markdown-editor";
-import CodeSnippetEditor from "@/components/code-snippet-editor";
+import SimpleMarkdownEditor from "@/components/work/SimpleMarkdownEditor";
+import CodeSnippetEditor from "@/components/work/CodeSnippetEditor";
+import { AdminAuthContext } from "@/components/home/AdminAuthProvider";
 
 interface EditProjectPageProps {
   params: Promise<{
@@ -21,6 +22,7 @@ interface EditProjectPageProps {
 }
 
 export default function EditProjectPage({ params }: EditProjectPageProps) {
+  const { isAdmin } = useContext(AdminAuthContext);
   const router = useRouter();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
@@ -55,7 +57,7 @@ export default function EditProjectPage({ params }: EditProjectPageProps) {
   const resolvedParams = use(params) as { slug: string };
   const slug = resolvedParams.slug;
 
-  // Load project data
+  // Load project data (must be before any conditional return)
   useEffect(() => {
     const loadProject = async () => {
       try {
@@ -88,9 +90,22 @@ export default function EditProjectPage({ params }: EditProjectPageProps) {
         setLoading(false);
       }
     };
-
     loadProject();
   }, [slug]);
+
+  if (!isAdmin) {
+    if (typeof window !== "undefined") {
+      router.replace(`/projects/${slug}`);
+    }
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Unauthorized</h2>
+          <p className="text-muted-foreground">You must be an admin to edit this project.</p>
+        </div>
+      </div>
+    );
+  }
 
   // Handle form field changes
   const handleInputChange = (field: string, value: string) => {
@@ -408,8 +423,6 @@ export default function EditProjectPage({ params }: EditProjectPageProps) {
                         label="Project Objective"
                       />
                     </div>
-
-
 
                     {/* Future Improvements */}
                     <div className="space-y-2">

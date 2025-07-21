@@ -1,17 +1,22 @@
-import { About8 } from "@/components/about8";
-import { Hero12 } from "@/components/hero12";
-import { Hero219 } from "@/components/hero219";
-import { Hero223 } from "@/components/hero223";
+import { AboutCarousel } from "@/components/about/AboutCarousel";
+import { HeroMain } from "@/components/home/HeroMain";
+import { HeroAnimated } from "@/components/home/HeroAnimated";
+import { HeroBoxes } from "@/components/home/HeroBoxes";
+import HeroCreative from "@/components/home/HeroCreative";
+import HeroAboutMe from "@/components/home/HeroAboutMe";
+import HeroMyWork from "@/components/home/HeroMyWork";
+import { HeroStats } from "@/components/home/HeroStats";
 
 import Link from "next/link";
 
 export default function Home() {
   return (
     <>
-      <Hero223 />
-      {/* <About8 />
-      <Hero12 />
-      <Hero219 />
+      <HeroBoxes />
+      <HeroStats />
+      {/* <AboutCarousel />
+      <HeroMain />
+      <HeroAnimated />
       <div className="mt-8 flex justify-center">
         <Link href="/chatbot" className="underline text-blue-600">Chatbot Page Example</Link>
         <Link href="/about" className="underline text-blue-600">About Page Example</Link>
