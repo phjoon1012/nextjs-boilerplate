@@ -232,3 +232,10 @@
   word-wrap: break-word !important;
   overflow-wrap: break-word !important;
 }
+
+/* Fix inline code rendering in markdown lists */
+.prose li code {
+  display: inline;
+  margin: 0;
+  padding: 0;
+}

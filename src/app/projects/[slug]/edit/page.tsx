@@ -93,10 +93,14 @@ export default function EditProjectPage({ params }: EditProjectPageProps) {
     loadProject();
   }, [slug]);
 
-  if (!isAdmin) {
-    if (typeof window !== "undefined") {
+  // Place this after all hooks, before the return
+  useEffect(() => {
+    if (!isAdmin && typeof window !== "undefined") {
       router.replace(`/projects/${slug}`);
     }
+  }, [isAdmin, router, slug]);
+
+  if (!isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

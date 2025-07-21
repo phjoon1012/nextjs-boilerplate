@@ -37,7 +37,7 @@ export const Hero223 = () => {
           <div className="fadeInUp3 font-semibold text-primary md:text-6xl text-4xl mb-2 md:mb-4">Your Software Developer.</div>
         </h1>
         <p className="relative z-99 mt-4 max-w-xl text-center text-lg text-muted-foreground">
-          Scroll down to get to know me better.
+          Quick learner, hard worker, and a team player.
         </p>
         <div className="realtive z-99 mt-10 flex items-center justify-center gap-4">
           <Button

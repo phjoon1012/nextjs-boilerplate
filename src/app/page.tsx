@@ -1,18 +1,46 @@
+"use client";
 import { AboutCarousel } from "@/components/about/AboutCarousel";
 import { HeroMain } from "@/components/home/HeroMain";
 import { HeroAnimated } from "@/components/home/HeroAnimated";
 import { HeroBoxes } from "@/components/home/HeroBoxes";
 import HeroCreative from "@/components/home/HeroCreative";
-import HeroAboutMe from "@/components/home/HeroAboutMe";
-import HeroMyWork from "@/components/home/HeroMyWork";
 import { HeroStats } from "@/components/home/HeroStats";
+import { Boxes } from "@/components/aceternity/background-boxes";
+import { Particles } from "@/components/magicui/particles";
 
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 
 export default function Home() {
+  const dividerRef = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!dividerRef.current) return;
+      const rect = dividerRef.current.getBoundingClientRect();
+      // Show divider when it's at least 40px from the top of the viewport
+      setVisible(rect.top < window.innerHeight - 40);
+    };
+    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <>
       <HeroBoxes />
+      {/* Long, thin, minimalistic divider with fade-out ends and scroll-triggered fade-in */}
+      <div className="flex justify-center items-center w-full my-8">
+        <div
+          ref={dividerRef}
+          className={`h-0.5 w-3/4 bg-muted rounded-full shadow-sm transition-opacity duration-700 relative ${visible ? 'opacity-100' : 'opacity-0'}`}
+          style={{
+            maskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
+            WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
+          }}
+        />
+      </div>
       <HeroStats />
       {/* <AboutCarousel />
       <HeroMain />
