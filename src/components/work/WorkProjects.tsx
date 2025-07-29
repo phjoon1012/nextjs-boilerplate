@@ -10,7 +10,13 @@ import { AdminAuthContext } from "@/components/home/AdminAuthProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Search, X, Plus } from "lucide-react";
+import { Search, X, Plus, Star, ExternalLink } from "lucide-react";
+import PinnedProjects from "./PinnedProjects";
+import TagsDisplay from "./TagsDisplay";
+import CompactTagsDisplay from "./CompactTagsDisplay";
+import MinimalTagsDisplay from "./MinimalTagsDisplay";
+import UltraMinimalTagsDisplay from "./UltraMinimalTagsDisplay";
+import RecommendationBubble from "./RecommendationBubble";
 
 // Helper to parse duration string to hours
 function parseDurationToHours(duration: string): number {
@@ -30,7 +36,7 @@ const Blog17 = () => {
   const [mainCategories, setMainCategories] = useState<string[]>(["All Articles"]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All Articles");
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
   
@@ -177,7 +183,7 @@ const Blog17 = () => {
 
   const clearFilters = () => {
     setSearchTerm("");
-    setSelectedCategory("All Articles");
+    setSelectedCategory("");
     setShowSuggestions(false);
     setSelectedSuggestionIndex(-1);
   };
@@ -240,158 +246,171 @@ const Blog17 = () => {
             )}
           </div>
 
-          {/* Popular Technologies Quick Search */}
-          {!searchTerm && (
-            <div className="text-center space-y-4">
-              <p className="text-lg font-medium text-muted-foreground">Popular technologies:</p>
-              <div className="flex flex-wrap justify-center gap-3">
-                {["React", "Python", "Unity", "Node.js", "Docker", "TypeScript"].map((tech) => (
-                  <Button
-                    key={tech}
-                    variant="outline"
-                    size="default"
-                    onClick={() => {
-                      setSearchTerm(tech);
-                      setShowSuggestions(false);
-                    }}
-                    className="text-base px-6 py-2 hover:bg-primary hover:text-primary-foreground transition-colors"
-                  >
-                    {tech}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
 
          
-          {/* Results Count */}
-          <div className="text-center text-muted-foreground">
-            Showing {projects.length} projects
-            {searchTerm && (
-              <span className="ml-2">
-                • Searching for "{searchTerm}"
-              </span>
-            )}
-          </div>
         </div>
 
-        <div className="mx-auto mt-20 grid max-w-7xl grid-cols-1 gap-20 lg:grid-cols-4">
-          <div className="hidden flex-col gap-2 lg:flex">
+        <div className="mx-auto mt-8 max-w-4xl">
+          {/* Category Filter Bubbles - Smaller and closer to search */}
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
             {mainCategories.map((category) => (
               <Button
-                variant="ghost"
                 key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={cn(
-                  "justify-start text-left",
-                  selectedCategory === category &&
-                    "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-                )}
+                variant={category === "All Articles" && selectedCategory === "" ? "default" : "outline"}
+                size="sm"
+                onClick={() => {
+                  if (category === "All Articles") {
+                    setSelectedCategory("");
+                    setSearchTerm("");
+                  } else {
+                    setSelectedCategory(category);
+                    setSearchTerm(category);
+                  }
+                }}
+                className="text-xs px-3 py-1 h-7"
               >
                 {category}
               </Button>
             ))}
+            {(searchTerm || selectedCategory !== "") && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearFilters}
+                className="text-xs text-muted-foreground hover:text-foreground px-3 py-1 h-7"
+              >
+                Reset
+              </Button>
+            )}
             
             {/* Admin-only New Project button */}
             {isAdmin && (
+              <Link href="/work/new">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="text-xs bg-primary/10 hover:bg-primary/20 text-primary border-primary/20 px-3 py-1 h-7"
+                >
+                  <Plus className="w-3 h-3 mr-1" />
+                  New
+                </Button>
+              </Link>
+                        )}
+          </div>
+          
+          {/* Results Count - Below bubbles */}
+          <div className="text-center text-muted-foreground mb-6">
+            {!searchTerm && selectedCategory === "" ? (
               <>
-                <div className="my-4 border-t border-border"></div>
-                <Link href="/work/new">
-                  <Button 
-                    variant="outline" 
-                    className="justify-start text-left w-full bg-primary/10 hover:bg-primary/20 text-primary border-primary/20"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    New Project
-                  </Button>
-                </Link>
+                Featured projects and recommendations
+              </>
+            ) : searchTerm ? (
+              <>
+                Showing {projects.length} projects • Searching for "{searchTerm}"
+              </>
+            ) : (
+              <>
+                Showing {projects.length} projects • Filtered by {selectedCategory}
               </>
             )}
           </div>
-          <div className="lg:col-span-3">
-            {projects.length > 0 ? (
-              projects.map((item) => (
-                <React.Fragment key={item.id}>
-                  <Link href={`/projects/${item.slug}`} className="group block hover:bg-muted/30 p-6 rounded-none transition-colors border-t border-b border-border ">
-                    {/* Header Row */}
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-start gap-3 flex-1 min-w-0">
-                        <h3 className="text-xl font-semibold text-foreground group-hover:text-primary transition-colors">
-                          {item.title}
-                        </h3>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          {item.categories.map((category, index) => (
-                            <span
-                              key={index}
-                              className="text-xs font-medium bg-primary/10 text-primary px-2 py-1 rounded-md"
-                            >
-                              {category}
-                            </span>
-                          ))}
+          
+          {/* Content Area - Recommendation or Search Results */}
+          {!searchTerm && selectedCategory === "" ? (
+            // Recommendation Section - Only show when no search and no category filter
+            <div className="space-y-8">
+              <RecommendationBubble 
+                projects={projects} 
+                onCategoryClick={(category) => {
+                  setSelectedCategory(category);
+                  setSearchTerm(category);
+                }}
+              />
+            </div>
+          ) : (
+            // Search Results - Show when there's a search term or category filter
+            <>
+              {projects.length > 0 ? (
+                projects.map((item) => (
+                  <React.Fragment key={item.id}>
+                    <Link href={`/projects/${item.slug}`} className="group block hover:bg-muted/30 p-6 rounded-none transition-colors border-t border-b border-border ">
+                      {/* Header Row */}
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                          <h3 className="text-xl font-semibold text-foreground group-hover:text-primary transition-colors">
+                            {item.title}
+                          </h3>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            {item.categories.map((category, index) => (
+                              <span
+                                key={index}
+                                className="text-xs font-medium bg-primary/10 text-primary px-2 py-1 rounded-md"
+                              >
+                                {category}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end gap-1 text-xs text-muted-foreground flex-shrink-0 ml-4">
+                          {item.project_date && (
+                            <span>{formatProjectDate(item.project_date, item.project_location)}</span>
+                          )}
+                          <span className="text-primary font-medium">
+                            {item.duration}
+                          </span>
                         </div>
                       </div>
-                      <div className="flex flex-col items-end gap-1 text-xs text-muted-foreground flex-shrink-0 ml-4">
-                        {item.project_date && (
-                          <span>{formatProjectDate(item.project_date, item.project_location)}</span>
-                        )}
-                        <span className="text-primary font-medium">
-                          {item.duration}
-                        </span>
+                      
+                      {/* Description */}
+                      <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                        {(() => {
+                          const sections = parseProjectDescription(item.description || '');
+                          return sections.overview || item.description || '';
+                        })()}
+                      </p>
+                      
+                      {/* Technologies and Concepts */}
+                      <div className="mb-4">
+                        <UltraMinimalTagsDisplay 
+                          technologies={item.technologies} 
+                          concepts={item.concepts || []}
+                          maxVisible={2}
+                        />
                       </div>
-                    </div>
-                    
-                    {/* Description */}
-                    <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                      {(() => {
-                        const sections = parseProjectDescription(item.description || '');
-                        return sections.overview || item.description || '';
-                      })()}
-                    </p>
-                    
-                    {/* Technologies */}
-                    <div className="flex flex-wrap gap-1.5 mb-4">
-                      {item.technologies.map((tech, index) => (
-                        <span
-                          key={index}
-                          className="px-2 py-1 text-xs font-medium bg-muted text-muted-foreground rounded-md"
-                        >
-                          {tech}
-                        </span>
-                      ))}
-                    </div>
-                    
-                    {/* Key Achievements - More Prominent */}
-                    <div className="space-y-2">
-                      <h4 className="text-sm font-bold text-foreground uppercase tracking-wide">Key Achievements</h4>
-                      <ul className="space-y-1">
-                        {item.achievements.slice(0, 3).map((achievement, index) => (
-                          <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
-                            <span className="text-primary mt-1 text-sm">•</span>
-                            <span className="leading-relaxed">{achievement}</span>
-                          </li>
-                        ))}
-                        {item.achievements.length > 3 && (
-                          <li className="text-sm text-muted-foreground italic">
-                            +{item.achievements.length - 3} more achievements
-                          </li>
-                        )}
-                      </ul>
-                    </div>
-                  </Link>
-                  <div className="h-6" />
-                </React.Fragment>
-              ))
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground text-lg">
-                  No projects found matching your criteria.
-                </p>
-                <Button variant="outline" onClick={clearFilters} className="mt-4">
-                  Clear Filters
-                </Button>
-              </div>
-            )}
-          </div>
+                      
+                      {/* Key Achievements - More Prominent */}
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-bold text-foreground uppercase tracking-wide">Key Achievements</h4>
+                        <ul className="space-y-1">
+                          {item.achievements.slice(0, 3).map((achievement, index) => (
+                            <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
+                              <span className="text-primary mt-1 text-sm">•</span>
+                              <span className="leading-relaxed">{achievement}</span>
+                            </li>
+                          ))}
+                          {item.achievements.length > 3 && (
+                            <li className="text-sm text-muted-foreground italic">
+                              +{item.achievements.length - 3} more achievements
+                            </li>
+                          )}
+                        </ul>
+                      </div>
+                    </Link>
+                    <div className="h-6" />
+                  </React.Fragment>
+                ))
+              ) : (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground text-lg">
+                    No projects found matching your criteria.
+                  </p>
+                  <Button variant="outline" onClick={clearFilters} className="mt-4">
+                    Clear Filters
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
     </section>

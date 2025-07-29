@@ -9,7 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Save, Plus, X, BookOpen, Brain, AlertTriangle, TrendingUp, User, Calendar, MapPin, Zap, Star, FileCode } from "lucide-react";
+import { ArrowLeft, Save, Plus, X, BookOpen, Brain, AlertTriangle, TrendingUp, User, Calendar, MapPin, Zap, Star, FileCode, Building } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { getProjectBySlug, Project } from "@/lib/projects";
 import SimpleMarkdownEditor from "@/components/work/SimpleMarkdownEditor";
 import CodeSnippetEditor from "@/components/work/CodeSnippetEditor";
@@ -31,11 +32,17 @@ export default function EditProjectPage({ params }: EditProjectPageProps) {
     title: "",
     description: "",
     technologies: [] as string[],
+    concepts: [] as string[],
     categories: [] as string[],
     duration: "",
     project_date: "",
     project_location: "",
     achievements: [] as string[],
+    // New metadata fields
+    project_role: "",
+    project_type: "",
+    project_team_size: "",
+    pinned: false,
     // Modular content fields
     overview: "",
     objective: "",
@@ -63,16 +70,24 @@ export default function EditProjectPage({ params }: EditProjectPageProps) {
       try {
         const projectData = await getProjectBySlug(slug);
         if (projectData) {
+          console.log('Loaded project data:', projectData);
+          console.log('Project date from database:', projectData.project_date);
           setProject(projectData);
           setFormData({
             title: projectData.title,
             description: projectData.description || "",
             technologies: projectData.technologies,
+            concepts: projectData.concepts || [],
             categories: projectData.categories,
             duration: projectData.duration,
             project_date: projectData.project_date || "",
             project_location: projectData.project_location || "",
             achievements: projectData.achievements,
+            // New metadata fields
+            project_role: projectData.project_role || "",
+            project_type: projectData.project_type || "",
+            project_team_size: projectData.project_team_size || "",
+            pinned: projectData.pinned || false,
             // Modular content fields
             overview: projectData.overview || "",
             objective: projectData.objective || "",
@@ -117,6 +132,49 @@ export default function EditProjectPage({ params }: EditProjectPageProps) {
       ...prev,
       [field]: value
     }));
+    
+    // Auto-calculate end date when both start date and duration are provided
+    if (field === 'project_date' || field === 'duration') {
+      const startDate = field === 'project_date' ? value : formData.project_date;
+      const duration = field === 'duration' ? value : formData.duration;
+      
+      if (startDate && duration) {
+        try {
+          const start = new Date(startDate);
+          if (!isNaN(start.getTime())) {
+            // Parse duration (e.g., "3 months", "6 weeks", "2 years")
+            const durationMatch = duration.toLowerCase().match(/(\d+)\s*(month|week|year|day)s?/);
+            if (durationMatch) {
+              const amount = parseInt(durationMatch[1]);
+              const unit = durationMatch[2];
+              
+              const end = new Date(start);
+              switch (unit) {
+                case 'month':
+                  end.setMonth(end.getMonth() + amount);
+                  break;
+                case 'week':
+                  end.setDate(end.getDate() + (amount * 7));
+                  break;
+                case 'year':
+                  end.setFullYear(end.getFullYear() + amount);
+                  break;
+                case 'day':
+                  end.setDate(end.getDate() + amount);
+                  break;
+              }
+              
+              const endDateStr = end.toISOString().split('T')[0];
+              const dateRange = `${startDate} - ${endDateStr}`;
+              console.log('Auto-calculated date range:', dateRange);
+              setFormData(prev => ({ ...prev, project_date: dateRange }));
+            }
+          }
+        } catch (error) {
+          console.error('Error calculating end date:', error);
+        }
+      }
+    }
   };
 
   // Handle array field changes (technologies, categories, achievements)
@@ -187,6 +245,7 @@ export default function EditProjectPage({ params }: EditProjectPageProps) {
     try {
       console.log('Saving project data:', formData);
       console.log('Project slug:', slug);
+      console.log('Project date being saved:', formData.project_date);
       
       // Check if we have content to save
       const hasContent = formData.description || 
@@ -304,8 +363,11 @@ export default function EditProjectPage({ params }: EditProjectPageProps) {
                     type="text"
                     value={formData.project_date}
                     onChange={(e) => handleInputChange("project_date", e.target.value)}
-                    placeholder="e.g., 2023-01-01 - 2023-04-30"
+                    placeholder="e.g., 2025-01-01 or 2025-01-01 - 2025-04-01"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Enter start date only or full date range
+                  </p>
                 </div>
                 
                 <div>
@@ -512,6 +574,98 @@ export default function EditProjectPage({ params }: EditProjectPageProps) {
                         </Button>
                       </div>
                     </div>
+
+                    {/* Concepts */}
+                    <div className="space-y-3">
+                      <Label className="text-lg font-semibold flex items-center gap-2">
+                        <Brain className="h-5 w-5 text-primary" />
+                        Concepts
+                      </Label>
+                      <div className="space-y-2">
+                        {formData.concepts.map((concept, index) => (
+                          <div key={index} className="flex gap-2">
+                            <Input
+                              value={concept}
+                              onChange={(e) => handleArrayChange("concepts", index, e.target.value)}
+                              placeholder="Enter concept (e.g., Fine-tuning, Transfer Learning)"
+                            />
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => removeArrayItem("concepts", index)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                        <Button
+                          variant="outline"
+                          onClick={() => addArrayItem("concepts")}
+                          className="flex items-center gap-2"
+                        >
+                          <Plus className="h-4 w-4" />
+                          Add Concept
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Project Role */}
+                    <div className="space-y-3">
+                      <Label className="text-lg font-semibold flex items-center gap-2">
+                        <User className="h-5 w-5 text-primary" />
+                        Project Role
+                      </Label>
+                      <Input
+                        value={formData.project_role}
+                        onChange={(e) => handleInputChange("project_role", e.target.value)}
+                        placeholder="e.g., Lead Developer, Full Stack Engineer, Team Lead"
+                      />
+                    </div>
+
+                    {/* Project Type */}
+                    <div className="space-y-3">
+                      <Label className="text-lg font-semibold flex items-center gap-2">
+                        <BookOpen className="h-5 w-5 text-primary" />
+                        Project Type
+                      </Label>
+                      <Input
+                        value={formData.project_type}
+                        onChange={(e) => handleInputChange("project_type", e.target.value)}
+                        placeholder="e.g., Web Application, Mobile App, Research Project"
+                      />
+                    </div>
+
+                    {/* Team Size */}
+                    <div className="space-y-3">
+                      <Label className="text-lg font-semibold flex items-center gap-2">
+                        <Building className="h-5 w-5 text-primary" />
+                        Team Size
+                      </Label>
+                      <Input
+                        value={formData.project_team_size}
+                        onChange={(e) => handleInputChange("project_team_size", e.target.value)}
+                        placeholder="e.g., Solo Project, 3-person team, 10+ developers"
+                      />
+                    </div>
+
+                    {/* Pinned Project */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-lg font-semibold flex items-center gap-2">
+                          <Star className="h-5 w-5 text-primary" />
+                          Pin as Featured Project
+                        </Label>
+                        <Switch
+                          checked={formData.pinned}
+                          onCheckedChange={(checked) => handleInputChange("pinned", checked.toString())}
+                        />
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Pinned projects appear at the top of the work page as featured projects
+                      </p>
+                    </div>
+
+
                   </TabsContent>
 
                   {/* Code Snippets Tab */}

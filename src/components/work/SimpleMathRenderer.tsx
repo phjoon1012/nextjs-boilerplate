@@ -50,6 +50,9 @@ export default function SimpleMathRenderer({ content, className = "" }: SimpleMa
         return `<ul>${match}</ul>`;
       });
       
+      // Images (markdown syntax)
+      processed = processed.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="max-w-full h-auto rounded-lg mx-auto block" />');
+      
       return processed;
     };
 

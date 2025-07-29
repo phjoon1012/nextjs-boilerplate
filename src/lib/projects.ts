@@ -5,6 +5,7 @@ export interface Project {
   title: string
   description?: string // Keep for backward compatibility
   technologies: string[]
+  concepts: string[]
   duration: string
   achievements: string[]
   categories: string[]
@@ -13,6 +14,12 @@ export interface Project {
   project_location?: string
   created_at?: string
   updated_at?: string
+  
+  // New customizable metadata fields
+  project_role?: string
+  project_type?: string
+  project_team_size?: string
+  pinned?: boolean
   
   // Modular content sections
   overview?: string
@@ -128,24 +135,46 @@ export function formatProjectDate(dateString?: string, location?: string): strin
   if (!dateString) return ''
   
   try {
-    // Check if it's a date range (contains "-")
-    if (dateString.includes('-')) {
-      const [startDate, endDate] = dateString.split('-').map(d => d.trim())
+    console.log('formatProjectDate input:', dateString)
+    
+    // Check if it's a date range (contains " - " with spaces)
+    if (dateString.includes(' - ')) {
+      const [startDate, endDate] = dateString.split(' - ').map(d => d.trim())
+      console.log('Parsed date range:', { startDate, endDate })
       
       const start = new Date(startDate)
       const end = new Date(endDate)
+      
+      console.log('Parsed dates:', { start, end })
+      
+      // Check if dates are valid
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        console.error('Invalid dates:', { startDate, endDate })
+        return dateString
+      }
       
       const startFormatted = start.toLocaleDateString('en-US', {
         month: 'short',
         year: 'numeric'
       })
       
-      const endFormatted = end.toLocaleDateString('en-US', {
-        month: 'short',
-        year: 'numeric'
-      })
+      // Check if end date is in the future (within 3 months) to show "Present"
+      const now = new Date();
+      const threeMonthsFromNow = new Date();
+      threeMonthsFromNow.setMonth(now.getMonth() + 3);
+      
+      let endFormatted;
+      if (end > threeMonthsFromNow) {
+        endFormatted = 'Present';
+      } else {
+        endFormatted = end.toLocaleDateString('en-US', {
+          month: 'short',
+          year: 'numeric'
+        });
+      }
       
       const dateRange = `${startFormatted} - ${endFormatted}`
+      console.log('Formatted date range:', dateRange)
       
       // Add location if provided
       if (location) {
@@ -154,12 +183,21 @@ export function formatProjectDate(dateString?: string, location?: string): strin
       
       return dateRange
     } else {
-      // Single date
+      // Single date - try to parse as ISO date
       const date = new Date(dateString)
+      
+      // Check if the date is valid
+      if (isNaN(date.getTime())) {
+        console.error('Invalid single date:', dateString)
+        return dateString
+      }
+      
       const formattedDate = date.toLocaleDateString('en-US', {
         month: 'short',
         year: 'numeric'
       })
+      
+      console.log('Formatted single date:', formattedDate)
       
       // Add location if provided
       if (location) {
@@ -169,6 +207,7 @@ export function formatProjectDate(dateString?: string, location?: string): strin
       return formattedDate
     }
   } catch (error) {
+    console.error('Error formatting project date:', error)
     return dateString
   }
 }

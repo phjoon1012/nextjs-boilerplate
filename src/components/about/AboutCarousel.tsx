@@ -231,5 +231,3 @@ const PlusSigns = ({ className, ...props }: PlusSignsProps) => {
     </svg>
   );
 };
-
-export { About8 as AboutCarousel };

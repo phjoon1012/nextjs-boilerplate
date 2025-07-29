@@ -24,11 +24,18 @@ export async function PUT(
         title: body.title,
         description: body.description,
         technologies: body.technologies?.filter((t: string) => t.trim()) || [],
+        concepts: body.concepts?.filter((c: string) => c.trim()) || [],
         categories: body.categories?.filter((c: string) => c.trim()) || [],
         duration: body.duration,
-        project_date: body.project_date || null,
+        project_date: body.project_date || null, // Store as text to handle date ranges
         project_location: body.project_location || null,
         achievements: body.achievements?.filter((a: string) => a.trim()) || [],
+        
+        // New metadata fields
+        project_role: body.project_role || null,
+        project_type: body.project_type || null,
+        project_team_size: body.project_team_size || null,
+        pinned: body.pinned === 'true' || body.pinned === true,
         
         // Modular content sections
         overview: body.overview || null,

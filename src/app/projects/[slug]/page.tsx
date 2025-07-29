@@ -9,6 +9,7 @@ import { Metadata } from "next";
 import ProjectEditButton from "@/components/work/ProjectEditButton";
 import TableOfContents from "@/components/work/TableOfContents";
 import ProjectSection from "@/components/work/ProjectSection";
+import ProjectMetadata from "@/components/work/ProjectMetadata";
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { 
@@ -112,27 +113,8 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             {project.overview || descriptionSections.overview || project.description}
           </p>
 
-          {/* Compact Project Stats */}
-          <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground border-t border-border pt-4">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              <span>
-                {project.project_date ? formatProjectDate(project.project_date, project.project_location) : project.duration}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              <span>Team Project</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Zap className="h-4 w-4" />
-              <span>Production Ready</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Star className="h-4 w-4" />
-              <span>Featured</span>
-            </div>
-          </div>
+          {/* Customizable Project Metadata */}
+          <ProjectMetadata project={project} />
         </div>
 
         {/* Main Content */}
