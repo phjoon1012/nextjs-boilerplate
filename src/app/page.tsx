@@ -1,5 +1,5 @@
 "use client";
-import { AboutCarousel } from "@/components/about/AboutCarousel";
+
 import { HeroMain } from "@/components/home/HeroMain";
 import { HeroAnimated } from "@/components/home/HeroAnimated";
 import { HeroBoxes } from "@/components/home/HeroBoxes";
