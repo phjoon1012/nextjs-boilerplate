@@ -298,22 +298,20 @@ const Blog17 = () => {
                         )}
           </div>
           
-          {/* Results Count - Below bubbles */}
-          <div className="text-center text-muted-foreground mb-6">
-            {!searchTerm && selectedCategory === "" ? (
-              <>
-                Featured projects and recommendations
-              </>
-            ) : searchTerm ? (
-              <>
-                Showing {projects.length} projects • Searching for "{searchTerm}"
-              </>
-            ) : (
-              <>
-                Showing {projects.length} projects • Filtered by {selectedCategory}
-              </>
-            )}
-          </div>
+          {/* Results Count - Only show when searching or filtering */}
+          {(searchTerm || selectedCategory !== "") && (
+            <div className="text-center text-muted-foreground mb-6">
+              {searchTerm ? (
+                <>
+                  Showing {projects.length} projects • Searching for "{searchTerm}"
+                </>
+              ) : (
+                <>
+                  Showing {projects.length} projects • Filtered by {selectedCategory}
+                </>
+              )}
+            </div>
+          )}
           
           {/* Content Area - Recommendation or Search Results */}
           {!searchTerm && selectedCategory === "" ? (

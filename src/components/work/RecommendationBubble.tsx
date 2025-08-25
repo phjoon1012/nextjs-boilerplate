@@ -29,34 +29,31 @@ export default function RecommendationBubble({ projects, onCategoryClick }: Reco
     <div className="space-y-8">
       
 
-      {/* Featured Projects - Grid Layout */}
+      {/* Featured Projects - Minimalistic */}
       {featuredProjects.length > 0 && (
-        <div className="space-y-8">
+        <div className="space-y-6">
           <div className="text-center">
-            <h3 className="text-2xl font-bold text-foreground">Featured Work</h3>
-            <p className="text-sm text-muted-foreground mt-2">
-              Selected projects that showcase my expertise and passion
-            </p>
+            <h3 className="text-xl font-semibold text-foreground">Recommendations</h3>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {featuredProjects.map((project, index) => (
               <Link 
                 key={project.id} 
                 href={`/projects/${project.slug}`}
                 className="group block"
               >
-                <div className="bg-gradient-to-br from-background to-muted/30 border border-border rounded-xl p-10 hover:border-primary/50 hover:shadow-lg transition-all duration-300 h-full">
-                  {/* Project Number */}
-                  <div className="flex items-center justify-between mb-8">
-                    <span className="text-5xl font-bold text-primary/20 group-hover:text-primary/40 transition-colors">
-                      {(index + 1).toString().padStart(2, '0')}
-                    </span>
-                    <div className="flex items-center gap-3">
-                      {project.categories.map((category, catIndex) => (
+                <div className="relative overflow-hidden bg-gradient-to-br from-background via-background to-muted/20 border border-border/50 rounded-xl p-6 hover:border-primary/40 hover:shadow-md transition-all duration-300 h-full group">
+                  {/* Background Accent */}
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/60 to-primary/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  
+                  {/* Category Tag */}
+                  <div className="flex justify-end mb-4">
+                    <div className="flex items-center gap-1">
+                      {project.categories.slice(0, 1).map((category, catIndex) => (
                         <span
                           key={catIndex}
-                          className="text-xs bg-primary/10 text-primary px-4 py-2 rounded-full"
+                          className="text-xs bg-primary/10 text-primary px-3 py-1 rounded-full border border-primary/20"
                         >
                           {category}
                         </span>
@@ -65,52 +62,27 @@ export default function RecommendationBubble({ projects, onCategoryClick }: Reco
                   </div>
 
                   {/* Project Title */}
-                  <h4 className="text-2xl font-semibold text-foreground group-hover:text-primary transition-colors mb-6">
+                  <h4 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors mb-3 text-left">
                     {project.title}
                   </h4>
 
                   {/* Project Description */}
-                  <p className="text-sm text-muted-foreground mb-8 leading-relaxed line-clamp-4">
+                  <p className="text-sm text-muted-foreground mb-4 line-clamp-3 leading-relaxed text-left">
                     {project.overview || project.description || ''}
                   </p>
 
                   {/* Project Metadata */}
-                  <div className="space-y-6">
-                    {/* Date */}
+                  <div className="space-y-2 text-left">
                     {project.project_date && (
                       <div className="text-xs text-muted-foreground">
                         {formatProjectDate(project.project_date, project.project_location)}
                       </div>
                     )}
-
-                    {/* Role and Type */}
-                    <div className="flex flex-wrap gap-3">
-                      {project.project_role && (
-                        <span className="text-xs bg-primary/10 text-primary px-4 py-2 rounded">
-                          {project.project_role}
-                        </span>
-                      )}
-                      {project.project_type && (
-                        <span className="text-xs bg-muted text-muted-foreground px-4 py-2 rounded">
-                          {project.project_type}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Technologies */}
-                    <UltraMinimalTagsDisplay 
-                      technologies={project.technologies} 
-                      concepts={project.concepts || []}
-                      maxVisible={2}
-                    />
-                  </div>
-
-                  {/* View Project Link */}
-                  <div className="mt-8 pt-6 border-t border-border/50">
-                    <div className="flex items-center gap-2 text-xs text-primary group-hover:text-primary/80 transition-colors">
-                      <span>View Details</span>
-                      <ArrowRight className="h-4 w-4" />
-                    </div>
+                    {project.project_role && (
+                      <div className="text-xs text-primary font-medium">
+                        {project.project_role}
+                      </div>
+                    )}
                   </div>
                 </div>
               </Link>
