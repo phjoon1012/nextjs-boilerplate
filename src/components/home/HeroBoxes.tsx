@@ -5,6 +5,7 @@ import { ArrowRight } from "lucide-react";
 import { Boxes } from "@/components/aceternity/background-boxes";
 // import { LineShadowText } from "@/components/magicui/line-shadow-text";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 const fadeInSeq = `
   @keyframes fadeInUp1 {
@@ -48,11 +49,14 @@ export const Hero223 = () => {
             <ArrowRight className="size-4 -rotate-45 transition-all ease-out group-hover:ml-3 group-hover:rotate-0" />
           </Button>
           <Button
+            asChild
             variant="secondary"
             className="group text-md flex w-fit items-center justify-center gap-2 rounded-full px-4 py-1 tracking-tight"
           >
-            <span>Contact Me</span>
-            <ArrowRight className="size-4 -rotate-45 transition-all ease-out group-hover:ml-3 group-hover:rotate-0" />
+            <Link href="/contact">
+              <span>Contact Me</span>
+              <ArrowRight className="size-4 -rotate-45 transition-all ease-out group-hover:ml-3 group-hover:rotate-0" />
+            </Link>
           </Button>
         </div>
       </div>

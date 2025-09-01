@@ -41,7 +41,7 @@ export default function Home() {
           }}
         />
       </div>
-      <HeroStats />
+      {/* <HeroStats /> */}
       {/* <AboutCarousel />
       <HeroMain />
       <HeroAnimated />

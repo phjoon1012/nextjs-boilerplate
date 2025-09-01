@@ -70,32 +70,46 @@ export default function SkillRadar({ data, size = 400 }: SkillRadarProps) {
       ctx.fillText(data[i].category, labelX, labelY);
     }
 
-    // Draw skill areas
+    // Draw polygon connecting all skill points
+    const polygonPoints: { x: number; y: number }[] = [];
+    
     data.forEach((category, categoryIndex) => {
       const categoryAngle = (categoryIndex * 2 * Math.PI) / categories - Math.PI / 2;
+      const skillRadius = (radius * category.skills[0].proficiency) / 100;
       
-      category.skills.forEach((skill, skillIndex) => {
-        const skillRadius = (radius * skill.proficiency) / 100;
-        const angle = categoryAngle + (skillIndex - (category.skills.length - 1) / 2) * 0.3;
-        
-        const x = centerX + skillRadius * Math.cos(angle);
-        const y = centerY + skillRadius * Math.sin(angle);
+      const x = centerX + skillRadius * Math.cos(categoryAngle);
+      const y = centerY + skillRadius * Math.sin(categoryAngle);
+      
+      polygonPoints.push({ x, y });
+    });
 
-        // Draw skill point
-        ctx.fillStyle = skill.color || '#3b82f6';
-        ctx.beginPath();
-        ctx.arc(x, y, 6, 0, 2 * Math.PI);
-        ctx.fill();
+    // Draw filled polygon
+    if (polygonPoints.length > 0) {
+      ctx.fillStyle = 'rgba(59, 130, 246, 0.2)'; // Blue with transparency
+      ctx.strokeStyle = '#3b82f6';
+      ctx.lineWidth = 2;
+      
+      ctx.beginPath();
+      ctx.moveTo(polygonPoints[0].x, polygonPoints[0].y);
+      for (let i = 1; i < polygonPoints.length; i++) {
+        ctx.lineTo(polygonPoints[i].x, polygonPoints[i].y);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
 
-        // Draw skill label
-        ctx.fillStyle = '#374151';
-        ctx.font = '12px Inter, sans-serif';
-        ctx.textAlign = 'center';
-        const labelOffset = 20;
-        const labelX = centerX + (skillRadius + labelOffset) * Math.cos(angle);
-        const labelY = centerY + (skillRadius + labelOffset) * Math.sin(angle);
-        ctx.fillText(skill.name, labelX, labelY);
-      });
+    // Draw skill points
+    polygonPoints.forEach((point) => {
+      ctx.fillStyle = '#3b82f6';
+      ctx.beginPath();
+      ctx.arc(point.x, point.y, 6, 0, 2 * Math.PI);
+      ctx.fill();
+      
+      // Add white border to points
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
     });
   }, [data, size]);
 
@@ -108,7 +122,7 @@ export default function SkillRadar({ data, size = 400 }: SkillRadarProps) {
       />
       <div className="mt-4 text-center">
         <p className="text-sm text-muted-foreground">
-          Proficiency levels: <span className="text-primary font-medium">Expert</span> → <span className="text-muted-foreground">Intermediate</span> → <span className="text-muted-foreground">Basic</span>
+          Proficiency levels: <span className="text-primary font-medium">Expert (90-100%)</span> → <span className="text-muted-foreground">Advanced (70-89%)</span> → <span className="text-muted-foreground">Intermediate (50-69%)</span>
         </p>
       </div>
     </div>
