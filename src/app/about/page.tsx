@@ -2,11 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Mail, Github, Linkedin, Download, Calendar, MapPin, Building, ArrowRight } from "lucide-react";
+import { Mail, Github, Linkedin, Download, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useRef, useEffect, useState } from "react";
 import SkillRadar from "@/components/ui/skill-radar";
+import { Timeline4 } from "@/components/about/timeline";
 
 export default function About() {
   // Simplified radar chart data - 5 main domains
@@ -40,33 +41,6 @@ export default function About() {
       skills: [
         { name: "Overall", proficiency: 88 }
       ]
-    }
-  ];
-
-  const experience = [
-    {
-      title: "Software Engineer",
-      company: "Tech Company",
-      location: "San Francisco, CA",
-      period: "2023 - Present",
-      description: "Developed scalable microservices architecture handling 10M+ daily requests, implemented robust CI/CD pipelines reducing deployment time by 60%, and led cross-functional teams to deliver high-impact features.",
-      technologies: ["React", "Node.js", "AWS", "Docker", "Kubernetes"]
-    },
-    {
-      title: "AI Research Assistant",
-      company: "University of Michigan",
-      location: "Ann Arbor, MI",
-      period: "2022 - 2023",
-      description: "Researched and implemented machine learning models for natural language processing, achieving 15% improvement in model accuracy through innovative data preprocessing techniques.",
-      technologies: ["Python", "TensorFlow", "PyTorch", "NLP", "Deep Learning"]
-    },
-    {
-      title: "Full Stack Developer",
-      company: "Startup",
-      location: "Remote",
-      period: "2021 - 2022",
-      description: "Built reliable web applications from concept to deployment, designed robust database schemas supporting 100K+ users, and implemented comprehensive testing strategies ensuring 99.9% uptime.",
-      technologies: ["JavaScript", "PostgreSQL", "Redis", "Jest", "TypeScript"]
     }
   ];
 
@@ -108,50 +82,7 @@ export default function About() {
 
       {/* Experience Section */}
       <section className="py-20 max-w-4xl mx-auto px-4">
-        <h2 className="text-3xl font-semibold mb-12 text-center">Professional Experience</h2>
-        <div className="space-y-8">
-          {experience.map((exp, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              viewport={{ once: true }}
-              className="bg-card border rounded-lg p-6 hover:shadow-md transition-shadow"
-            >
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
-                <div>
-                  <h3 className="text-xl font-semibold text-primary">{exp.title}</h3>
-                  <div className="flex items-center gap-4 mt-1 text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Building className="h-4 w-4" />
-                      <span className="text-sm">{exp.company}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <MapPin className="h-4 w-4" />
-                      <span className="text-sm">{exp.location}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
-                      <span className="text-sm">{exp.period}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <p className="text-muted-foreground mb-4 leading-relaxed">{exp.description}</p>
-              <div className="flex flex-wrap gap-2">
-                {exp.technologies.map((tech, techIndex) => (
-                  <span
-                    key={techIndex}
-                    className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-medium"
-                  >
-                    {tech}
-                  </span>
-                ))}
-              </div>
-            </motion.div>
-          ))}
-        </div>
+        <Timeline4 />
       </section>
 
       {/* Radar Chart Section (placed just above Skills) */}

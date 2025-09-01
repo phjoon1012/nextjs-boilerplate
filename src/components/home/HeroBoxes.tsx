@@ -6,6 +6,7 @@ import { Boxes } from "@/components/aceternity/background-boxes";
 // import { LineShadowText } from "@/components/magicui/line-shadow-text";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import gitInfo from "@/lib/git-info.json";
 
 const fadeInSeq = `
   @keyframes fadeInUp1 {
@@ -58,6 +59,34 @@ export const Hero223 = () => {
               <ArrowRight className="size-4 -rotate-45 transition-all ease-out group-hover:ml-3 group-hover:rotate-0" />
             </Link>
           </Button>
+        </div>
+        
+        {/* Construction Disclaimer */}
+        <div className="relative z-99 mt-8 text-center">
+          <p className="text-xs text-muted-foreground/60">
+            Website under construction • Last updated: {(() => {
+              try {
+                if (gitInfo && gitInfo.lastCommit) {
+                  return new Date(gitInfo.lastCommit).toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  }) + ` (commit: ${gitInfo.commitHash || 'unknown'})`;
+                }
+              } catch (error) {
+                console.warn('Failed to parse git info:', error);
+              }
+              return new Date().toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              });
+            })()}
+          </p>
         </div>
       </div>
     </section>
