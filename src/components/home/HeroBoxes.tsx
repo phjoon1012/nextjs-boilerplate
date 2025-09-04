@@ -1,12 +1,13 @@
 "use client";
 
 import React from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Users } from "lucide-react";
 import { Boxes } from "@/components/aceternity/background-boxes";
 // import { LineShadowText } from "@/components/magicui/line-shadow-text";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import gitInfo from "@/lib/git-info.json";
+import { useVisitorTracking } from "@/hooks/useVisitorTracking";
 
 const fadeInSeq = `
   @keyframes fadeInUp1 {
@@ -27,6 +28,8 @@ const fadeInSeq = `
 `;
 
 export const Hero223 = () => {
+  const { visitorCount, isLoading } = useVisitorTracking();
+
   return (
     <section className="py-32 max-w-5xl mx-auto">
       <style>{fadeInSeq}</style>
@@ -61,33 +64,20 @@ export const Hero223 = () => {
           </Button>
         </div>
         
-        {/* Construction Disclaimer */}
-        <div className="relative z-99 mt-8 text-center">
-          <p className="text-xs text-muted-foreground/60">
-            Website under construction • Last updated: {(() => {
-              try {
-                if (gitInfo && gitInfo.lastCommit) {
-                  return new Date(gitInfo.lastCommit).toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'short', 
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  }) + ` (commit: ${gitInfo.commitHash || 'unknown'})`;
-                }
-              } catch (error) {
-                console.warn('Failed to parse git info:', error);
-              }
-              return new Date().toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'short', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              });
-            })()}
-          </p>
+        {/* Visitor Counter */}
+        <div className="relative z-99 mt-6 flex items-center justify-center gap-2">
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-muted/50 border border-border/50">
+            <Users className="size-3 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">
+              {isLoading ? (
+                <span className="animate-pulse">Loading...</span>
+              ) : (
+                `${visitorCount} unique visitors today`
+              )}
+            </span>
+          </div>
         </div>
+
       </div>
     </section>
   );
